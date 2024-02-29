@@ -1,5 +1,5 @@
 """
-Main file for the chessboard game
+Main file for the ChessBot game
 """
 import pygame as p
 from Chess import chessEngine
