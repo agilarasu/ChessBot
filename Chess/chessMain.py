@@ -37,10 +37,32 @@ def main():
     print(gs.board)
     loadImages()  # call only once before while
     running = True
+    sq_selected = ()  # stores the last click of the user
+    player_clicks = []  # stores the player clicks as a list of two tuples eg: [(6,1),(5,1)] a6
     while running:
         for event in p.event.get():
             if event.type == p.QUIT:
                 running = False
+            elif event.type == p.MOUSEBUTTONDOWN:
+                location = p.mouse.get_pos()  # x,y of the mouse
+                col = location[0] // SQ_SIZE
+                row = location[1] // SQ_SIZE
+                if sq_selected == (row,col) :  # check if the same square was selected twice
+                    sq_selected = ()  # deselect the square
+                    player_clicks = []  # delete the clicks
+                else:
+                    sq_selected = (row, col)
+                    player_clicks.append(sq_selected)
+
+                # move the piece if they do a second click
+                if len(player_clicks) ==2:
+                    move = chessEngine.Move(player_clicks[0],player_clicks[1],gs.board)
+                    print(move.get_notation())
+                    gs.make_move(move)
+                    # reset the move to let them do next move
+                    sq_selected = ()
+                    player_clicks = []
+
         drawGameState(screen, gs)
         clock.tick(MAX_FPS)
         p.display.flip()
@@ -78,7 +100,8 @@ def drawPieces(screen, board):
         for col in range(DIMENSION):
             piece = board[row][col]
             if piece != '--':  # if not an empty square , draw the piece
-                screen.blit(IMAGES[piece], p.Rect(col*SQ_SIZE, row*SQ_SIZE,SQ_SIZE, SQ_SIZE))
+                screen.blit(IMAGES[piece], p.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
 
 if __name__ == "__main__":
     main()
