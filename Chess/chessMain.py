@@ -44,6 +44,7 @@ def main():
         for event in p.event.get():
             if event.type == p.QUIT:
                 running = False
+            # Mouse handler
             elif event.type == p.MOUSEBUTTONDOWN:
                 location = p.mouse.get_pos()  # x,y of the mouse
                 col = location[0] // SQ_SIZE
@@ -63,9 +64,18 @@ def main():
                     # reset the move to let them do next move
                     sq_selected = ()
                     player_clicks = []
+<<<<<<< Updated upstream
             elif event.type == p.KEYDOWN:
                 if event.key == p.K_z:
                     gs.undoMove()
+=======
+            # Key handler
+            elif event.type == p.KEYDOWN:
+                if event.key == p.K_LEFT:
+                    # undo for left arrow
+                    gs.undo_move()
+
+>>>>>>> Stashed changes
         drawGameState(screen, gs)
         clock.tick(MAX_FPS)
         p.display.flip()

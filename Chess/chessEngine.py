@@ -23,6 +23,7 @@ class Gamestate():
 
 
     def make_move(self,move):
+        """Takes a move as parameter and executes it (It will not work for en-passant ,promotion and castling)"""
         self.board[move.start_row][move.start_col] = "--"  # empty the start square before moving the piece
         self.board[move.end_row][move.end_col] = move.piece_moved  # overwrite the captured piece / square with the moved piece
         self.moveLog.append(move)   # make the move logs
@@ -35,6 +36,27 @@ class Gamestate():
            self.whiteToMove = not self.whiteToMove
 
 
+
+
+    def undo_move(self):
+        """Undo the last move"""
+        if len(self.moveLog) != 0:  #Check if any moves are made
+            move = self.moveLog.pop()  # Pops out the last move from moveLog
+            self.board[move.start_row][move.start_col] = move.piece_moved  # we are placing the moved piece to the start square
+            self.board[move.end_row][move.end_col] = move.piece_captured  # put the captured piece back to the board
+            self.whiteToMove = not self.whiteToMove  # Switch the turn back
+
+    def get_valid_moves(self):
+        """Get valid moves with considering checks"""
+        return self.get_all_possible_moves()
+
+    def get_all_possible_moves(self):
+        """Get all Moves without considering checks"""
+        moves = []
+        for row in range(len(self.board)):  # Number of rows
+            for col in range(len(self.board[row])):  # Number of Columns
+                piece_color = self.board[row][col][0]
+                if (piece_color == 'w' and self.whiteToMove):
 
 
 
