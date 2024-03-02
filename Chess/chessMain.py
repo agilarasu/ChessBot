@@ -4,7 +4,7 @@ Main file for the ChessBot game
 """
 import pygame as p
 import chessEngine
-
+import os
 WIDTH = HEIGHT = 512
 DIMENSION = 8  # Dimension of chess board
 SQ_SIZE = HEIGHT // DIMENSION
@@ -24,16 +24,21 @@ def load_images():
     # now we can access the images with IMAGES['wp']
 
 
-'''
-The main driver for our program'''
 
 
 def main():
-    p.init()  # initialize the pygame
+    """The main driver for our program"""
+    """Initialise the game graphics"""
+    p.init()
     screen = p.display.set_mode((WIDTH, HEIGHT))
     p.display.set_caption("Chess")
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
+    """Import the audio files for the game"""
+    p.mixer.init()
+    move_self = p.mixer.Sound(os.path.join('audio', 'move-self.mp3'))
+    capture = p.mixer.Sound(os.path.join('audio', 'capture.mp3'))
+    """Initialise the game state"""
     gs = chessEngine.Gamestate()  # calls the GameState of the Engine
     print(gs.board)
     valid_moves = gs.get_valid_moves()  # get all valid moves from this position
@@ -64,6 +69,10 @@ def main():
                     print(move.get_notation())
                     if move in valid_moves:  # Checks if the user's move is in the list of valid moves
                         gs.make_move(move)
+                        if move.move_type() == 'move':
+                            p.mixer.Sound.play(move_self)
+                        elif move.move_type() == 'capture':
+                            p.mixer.Sound.play(capture)
                         move_made = True
                     # reset the move to let them do next move
                     sq_selected = ()
