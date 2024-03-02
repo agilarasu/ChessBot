@@ -21,11 +21,21 @@ class Gamestate():
         self.whiteToMove = True  # false if black to move
         self.moveLog = []  # keep track of the moves
 
+
     def make_move(self,move):
         self.board[move.start_row][move.start_col] = "--"  # empty the start square before moving the piece
         self.board[move.end_row][move.end_col] = move.piece_moved  # overwrite the captured piece / square with the moved piece
         self.moveLog.append(move)   # make the move logs
         self.whiteToMove = not self.whiteToMove  # switch the player after this move
+    def undoMove(self):
+        if(len(self.moveLog)>0):
+           move= self.moveLog.pop()
+           self.board[move.start_row][move.start_col] = move.piece_moved
+           self.board[move.end_row][move.end_col] = move.piece_captured
+           self.whiteToMove = not self.whiteToMove
+
+
+
 
 
 class Move():

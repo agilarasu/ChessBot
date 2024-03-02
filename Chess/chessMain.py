@@ -1,5 +1,6 @@
 """
 Main file for the ChessBot game
+
 """
 import pygame as p
 import chessEngine
@@ -62,7 +63,9 @@ def main():
                     # reset the move to let them do next move
                     sq_selected = ()
                     player_clicks = []
-
+            elif event.type == p.KEYDOWN:
+                if event.key == p.K_z:
+                    gs.undoMove()
         drawGameState(screen, gs)
         clock.tick(MAX_FPS)
         p.display.flip()
