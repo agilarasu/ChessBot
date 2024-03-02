@@ -12,7 +12,7 @@ class Gamestate():
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "bp", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
 
@@ -21,28 +21,27 @@ class Gamestate():
         self.whiteToMove = True  # false if black to move
         self.moveLog = []  # keep track of the moves
 
-
-    def make_move(self,move):
+    def make_move(self, move):
         """Takes a move as parameter and executes it (It will not work for en-passant ,promotion and castling)"""
-        self.board[move.start_row][move.start_col] = "--"  # empty the start square before moving the piece
-        self.board[move.end_row][move.end_col] = move.piece_moved  # overwrite the captured piece / square with the moved piece
-        self.moveLog.append(move)   # make the move logs
+        if move.is_pawn_promotion():
+            move.piece_moved = move.piece_moved[0] + "Q"
+            self.board[move.start_row][move.start_col] = "--"  # empty the start square before moving the piece
+            self.board[move.end_row][
+                move.end_col] = move.piece_moved
+
+        else:
+            self.board[move.start_row][move.start_col] = "--"  # empty the start square before moving the piece
+            self.board[move.end_row][
+                move.end_col] = move.piece_moved  # overwrite the captured piece / square with the moved piece
+        self.moveLog.append(move)  # make the move logs
         self.whiteToMove = not self.whiteToMove  # switch the player after this move
-    def undoMove(self):
-        if(len(self.moveLog)>0):
-           move= self.moveLog.pop()
-           self.board[move.start_row][move.start_col] = move.piece_moved
-           self.board[move.end_row][move.end_col] = move.piece_captured
-           self.whiteToMove = not self.whiteToMove
-
-
-
 
     def undo_move(self):
         """Undo the last move"""
-        if len(self.moveLog) != 0:  #Check if any moves are made
+        if len(self.moveLog) != 0:  # Check if any moves are made
             move = self.moveLog.pop()  # Pops out the last move from moveLog
-            self.board[move.start_row][move.start_col] = move.piece_moved  # we are placing the moved piece to the start square
+            self.board[move.start_row][
+                move.start_col] = move.piece_moved  # we are placing the moved piece to the start square
             self.board[move.end_row][move.end_col] = move.piece_captured  # put the captured piece back to the board
             self.whiteToMove = not self.whiteToMove  # Switch the turn back
 
@@ -56,8 +55,74 @@ class Gamestate():
         for row in range(len(self.board)):  # Number of rows
             for col in range(len(self.board[row])):  # Number of Columns
                 piece_color = self.board[row][col][0]
-                if (piece_color == 'w' and self.whiteToMove):
+                if (piece_color == 'w' and self.whiteToMove) or (
+                        piece_color == 'b' and not self.whiteToMove):  # check if piece can be moved by current player
+                    piece = self.board[row][col][1]
+                    if piece == 'p':
+                        self.get_pawn_moves(row, col, moves)
+                        print(moves[0].move_id)
+                    elif piece == 'R':
+                        self.get_rook_moves(row, col, moves)
+                    elif piece == 'N':
+                        self.get_knight_moves(row, col, moves)
+                    elif piece == 'B':
+                        self.get_bishop_moves(row, col, moves)
+                    elif piece == 'Q':
+                        self.get_queen_moves(row, col, moves)
+                    elif piece == 'K':
+                        self.get_king_moves(row, col, moves)
+        return moves
 
+    def get_pawn_moves(self, r, c, moves):
+        """Get all possible moves of a pawn , given its current position"""
+        """White pawns start on row 6 (rank 2) and black pawn starts on row 1 (rank 7) """
+        """Need to add promotions as valid move to move list"""
+        if self.whiteToMove:
+            # For white pawn
+            if self.board[r - 1][c] == "--":  # 1 square pawn advance If the square in front of pawn is empty
+                moves.append(Move((r, c), (r - 1, c), self.board))
+                # We check two square pawn advance only if the square in front is empty
+                if r == 6 and self.board[r - 2][c] == '--':  # 2 square pawn advance
+                    moves.append(Move((r, c), (r - 2, c), self.board))
+            if c - 1 >= 0:  # To capture an enemy piece on left
+                if self.board[r - 1][c - 1][0] == 'b':
+                    moves.append(Move((r, c), (r - 1, c - 1), self.board))
+            if c + 1 <= 7:  # To capture an enemy piece on right
+                if self.board[r - 1][c + 1][0] == 'b':
+                    moves.append(Move((r, c), (r - 1, c + 1), self.board))
+        else:
+            # For black pawn
+            if self.board[r + 1][c] == "--":  # 1 square pawn advance If the square in front of pawn is empty
+                moves.append(Move((r, c), (r + 1, c), self.board))
+                # We check two square pawn advance only if the square in front is empty
+                if r == 1 and self.board[r + 2][c] == '--':  # 2 square pawn advance
+                    moves.append(Move((r, c), (r + 2, c), self.board))
+            if c - 1 >= 0:  # To capture an enemy piece on left
+                if self.board[r + 1][c - 1][0] == 'w':
+                    moves.append(Move((r, c), (r + 1, c - 1), self.board))
+            if c + 1 <= 7:  # To capture an enemy piece on right
+                if self.board[r + 1][c + 1][0] == 'w':
+                    moves.append(Move((r, c), (r + 1, c + 1), self.board))
+
+    def get_rook_moves(self, r, c, moves):
+        """Get all possible moves of a rook , given its current position"""
+        pass
+
+    def get_knight_moves(self, r, c, moves):
+        """Get all possible moves of a Knight , given its current position"""
+        pass
+
+    def get_bishop_moves(self, r, c, moves):
+        """Get all possible moves of a Bishop , given its current position"""
+        pass
+
+    def get_queen_moves(self, r, c, moves):
+        """Get all possible moves of a Queen , given its current position"""
+        pass
+
+    def get_king_moves(self, r, c, moves):
+        """Get all possible moves of a King , given its current position"""
+        pass
 
 
 class Move():
@@ -73,6 +138,13 @@ class Move():
         self.end_col = end_sq[1]
         self.piece_moved = board[self.start_row][self.start_col]  # get the piece that moved
         self.piece_captured = board[self.end_row][self.end_col]  # get the piece / square that was captured
+        self.move_id = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col  # Generates an unique id to the move
+
+    def __eq__(self, other):
+        """Overrides the default __eq__ method to check if the move id of the user move is on of the valid move"""
+        if isinstance(other, Move):
+            return self.move_id == other.move_id
+        return False
 
     def get_notation(self):
         """ use this method to get the notation of the piece moved"""
@@ -80,7 +152,18 @@ class Move():
         """need to work on this method to generate fide notation"""
         return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
 
-    def get_rank_file(self,row,col):
+    def get_rank_file(self, row, col):
         """use this method to convert row and column to ranks and files based of the predefined dictionary"""
         """ return eg : a5 if col == 0 and row == 3"""
         return self.cols_to_files[col] + self.rows_to_ranks[row]
+
+    def is_pawn_promotion(self):
+        """this method checks if the pawn is in promotion square"""
+        if self.piece_moved == 'bp' and self.end_row == 7:  # for black piece
+            return True
+        elif self.piece_moved == 'wp' and self.end_row == 0:
+            return True
+        else:
+            return False
+
+    # need to add enpassant , castle

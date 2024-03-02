@@ -17,7 +17,7 @@ Initialise a global dictionary of all Images
 '''
 
 
-def loadImages():
+def load_images():
     pieces = ['wp', 'wR', 'wB', 'wN', 'wK', 'wQ', 'bp', 'bN', 'bR', 'bB', 'bK', 'bQ']
     for piece in pieces:
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
@@ -36,7 +36,9 @@ def main():
     screen.fill(p.Color("white"))
     gs = chessEngine.Gamestate()  # calls the GameState of the Engine
     print(gs.board)
-    loadImages()  # call only once before while
+    valid_moves = gs.get_valid_moves()  # get all valid moves from this position
+    move_made = False  # Flag variable when a move is made
+    load_images()  # call only once before while
     running = True
     sq_selected = ()  # stores the last click of the user
     player_clicks = []  # stores the player clicks as a list of two tuples eg: [(6,1),(5,1)] a6
@@ -49,7 +51,7 @@ def main():
                 location = p.mouse.get_pos()  # x,y of the mouse
                 col = location[0] // SQ_SIZE
                 row = location[1] // SQ_SIZE
-                if sq_selected == (row,col) :  # check if the same square was selected twice
+                if sq_selected == (row, col):  # check if the same square was selected twice
                     sq_selected = ()  # deselect the square
                     player_clicks = []  # delete the clicks
                 else:
@@ -57,45 +59,40 @@ def main():
                     player_clicks.append(sq_selected)
 
                 # move the piece if they do a second click
-                if len(player_clicks) ==2:
-                    move = chessEngine.Move(player_clicks[0],player_clicks[1],gs.board)
+                if len(player_clicks) == 2:
+                    move = chessEngine.Move(player_clicks[0], player_clicks[1], gs.board)
                     print(move.get_notation())
-                    gs.make_move(move)
+                    if move in valid_moves:  # Checks if the user's move is in the list of valid moves
+                        gs.make_move(move)
+                        move_made = True
                     # reset the move to let them do next move
                     sq_selected = ()
                     player_clicks = []
-<<<<<<< Updated upstream
-            elif event.type == p.KEYDOWN:
-                if event.key == p.K_z:
-                    gs.undoMove()
-=======
             # Key handler
             elif event.type == p.KEYDOWN:
                 if event.key == p.K_LEFT:
                     # undo for left arrow
                     gs.undo_move()
+                    move_made = True
 
->>>>>>> Stashed changes
-        drawGameState(screen, gs)
+        if move_made:  # Get a new set of valid moves after the current mave is made
+            valid_moves = gs.get_valid_moves()
+            move_made = False
+
+        draw_game_state(screen, gs)
         clock.tick(MAX_FPS)
         p.display.flip()
 
 
-'''
-Draws the game board and responsible for any game graphic'''
-
-
-def drawGameState(screen, gs):
-    drawBoard(screen)  # draw squares on board
+def draw_game_state(screen, gs):
+    """Draws the game board and responsible for any game graphic"""
+    draw_board(screen)  # draw squares on board
     # we can also add move highlighter or suggestions here
-    drawPieces(screen, gs.board)  # draw pieces  on board
+    draw_pieces(screen, gs.board)  # draw pieces  on board
 
 
-'''
-Draws the squares of the board (Top left square is always white from both perspective)'''
-
-
-def drawBoard(screen):
+def draw_board(screen):
+    """Draws the squares of the board (Top left square is always white from both perspective)"""
     colors = [p.Color("white"),
               p.Color("gray")]  # we can customize the board color here CHESS.COM : LIGHT GRAY,DARK GREEN
     for row in range(DIMENSION):
@@ -105,10 +102,8 @@ def drawBoard(screen):
             p.draw.rect(screen, color, p.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 
-''' Places the pieces on board based on the given position'''
-
-
-def drawPieces(screen, board):
+def draw_pieces(screen, board):
+    """Places the pieces on board based on the given position"""
     for row in range(DIMENSION):
         for col in range(DIMENSION):
             piece = board[row][col]
