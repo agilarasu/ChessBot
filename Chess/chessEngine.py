@@ -12,7 +12,7 @@ class Gamestate():
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "bp", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
 
@@ -60,7 +60,6 @@ class Gamestate():
                     piece = self.board[row][col][1]
                     if piece == 'p':
                         self.get_pawn_moves(row, col, moves)
-                        print(moves[0].move_id)
                     elif piece == 'R':
                         self.get_rook_moves(row, col, moves)
                     elif piece == 'N':
@@ -105,24 +104,83 @@ class Gamestate():
                     moves.append(Move((r, c), (r + 1, c + 1), self.board))
 
     def get_rook_moves(self, r, c, moves):
-        """Get all possible moves of a rook , given its current position"""
-        pass
+        """
+        Get all possible moves of a Rook, given its current position.
+        """
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        for d in directions:
+            new_row, new_col = r, c
+            while True:
+                new_row += d[0]
+                new_col += d[1]
+                if 0 <= new_row <= 7 and 0 <= new_col <= 7:
+                    piece_color = self.board[r][c][0]
+                    if self.board[new_row][new_col][0] != piece_color:  # Check for any piece
+                        moves.append(Move((r, c), (new_row, new_col), self.board))
+                        if self.board[new_row][new_col] != '--':  # Stop if a piece is encountered
+                            break
+                    else:
+                        break  # Stop if own piece is encountered
+                else:
+                    break  # Stop if outside board
 
     def get_knight_moves(self, r, c, moves):
-        """Get all possible moves of a Knight , given its current position"""
-        pass
+        """
+        Get all possible moves of a Knight, given its current position.
+        """
+        knight_moves = [(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2)]
+        for move in knight_moves:
+            new_row = r + move[0]
+            new_col = c + move[1]
+            if 0 <= new_row <= 7 and 0 <= new_col <= 7:
+                piece_color = self.board[r][c][0]
+                if (piece_color == 'w' and self.whiteToMove) or (piece_color == 'b' and not self.whiteToMove):
+                    if self.board[new_row][new_col][0] != piece_color:
+                        moves.append(Move((r, c), (new_row, new_col), self.board))
 
     def get_bishop_moves(self, r, c, moves):
-        """Get all possible moves of a Bishop , given its current position"""
-        pass
+        """
+        Get all possible moves of a Bishop, given its current position.
+        """
+        directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+        for d in directions:
+            new_row, new_col = r, c
+            while True:
+                new_row += d[0]
+                new_col += d[1]
+                if 0 <= new_row <= 7 and 0 <= new_col <= 7:
+                    piece_color = self.board[r][c][0]
+                    if self.board[new_row][new_col][0] != piece_color:
+                        moves.append(Move((r, c), (new_row, new_col), self.board))
+                        if self.board[new_row][new_col] != '--':
+                            break  # Stop if a piece is encountered
+                    else:
+                        break  # Stop if own piece is encountered
+                else:
+                    break  # Stop if outside board
 
     def get_queen_moves(self, r, c, moves):
-        """Get all possible moves of a Queen , given its current position"""
-        pass
+        """
+        Get all possible moves of a Queen, given its current position.
+        """
+        self.get_rook_moves(r, c, moves)  # Queen moves like a rook
+        self.get_bishop_moves(r, c, moves)  # Queen moves like a bishop
 
     def get_king_moves(self, r, c, moves):
-        """Get all possible moves of a King , given its current position"""
-        pass
+        """
+        Get all possible moves of a King, given its current position.
+        (Considering only basic king moves, not castling)
+        """
+        king_moves = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
+        for move in king_moves:
+            new_row = r + move[0]
+            new_col = c + move[1]
+            if 0 <= new_row <= 7 and 0 <= new_col <= 7:
+                piece_color = self.board[r][c][0]
+                if (piece_color == 'w' and self.whiteToMove) or (piece_color == 'b' and not self.whiteToMove):
+                    if self.board[new_row][new_col][0] != piece_color:
+                        moves.append(Move((r, c), (new_row, new_col), self.board))
+
 
 
 class Move():
@@ -138,7 +196,7 @@ class Move():
         self.end_col = end_sq[1]
         self.piece_moved = board[self.start_row][self.start_col]  # get the piece that moved
         self.piece_captured = board[self.end_row][self.end_col]  # get the piece / square that was captured
-        self.move_id = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col  # Generates an unique id to the move
+        self.move_id = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col  # Generates a unique id to the move
 
     def __eq__(self, other):
         """Overrides the default __eq__ method to check if the move id of the user move is on of the valid move"""

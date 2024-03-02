@@ -76,6 +76,7 @@ def main():
                     move_made = True
 
         if move_made:  # Get a new set of valid moves after the current mave is made
+            print("movemade")
             valid_moves = gs.get_valid_moves()
             move_made = False
 
