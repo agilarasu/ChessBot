@@ -8,7 +8,7 @@ import os
 WIDTH = HEIGHT = 512
 DIMENSION = 8  # Dimension of chess board
 SQ_SIZE = HEIGHT // DIMENSION
-MAX_FPS = 15  # For animation
+MAX_FPS = 60  # For animation
 
 IMAGES = {}
 # add images here
