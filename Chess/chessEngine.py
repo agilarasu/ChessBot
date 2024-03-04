@@ -21,6 +21,11 @@ class Gamestate():
         self.whiteToMove = True  # false if black to move
         self.moveLog = []  # keep track of the moves
 
+        self.white_king_pos = (7, 4)
+        self.black_king_pos = (0, 4)
+        self.checkmate = False
+        self.stalemate = False
+
     def make_move(self, move):
         """Takes a move as parameter and executes it (It will not work for en-passant ,promotion and castling)"""
         if move.is_pawn_promotion():
@@ -35,6 +40,11 @@ class Gamestate():
                 move.end_col] = move.piece_moved  # overwrite the captured piece / square with the moved piece
         self.moveLog.append(move)  # make the move logs
         self.whiteToMove = not self.whiteToMove  # switch the player after this move
+        # Update the king position
+        if move.piece_moved == 'wK':
+            self.white_king_pos = (move.end_row, move.end_col)
+        elif move.piece_moved == 'bK':
+            self.black_king_pos = (move.end_row, move.end_col)
 
     def undo_move(self):
         """Undo the last move"""
@@ -44,10 +54,59 @@ class Gamestate():
                 move.start_col] = move.piece_moved  # we are placing the moved piece to the start square
             self.board[move.end_row][move.end_col] = move.piece_captured  # put the captured piece back to the board
             self.whiteToMove = not self.whiteToMove  # Switch the turn back
+            # Update the king position
+            if move.piece_moved == 'wK':
+                self.white_king_pos = (move.start_row, move.start_col)
+            elif move.piece_moved == 'bK':
+                self.black_king_pos = (move.start_row, move.start_col)
 
     def get_valid_moves(self):
         """Get valid moves with considering checks"""
-        return self.get_all_possible_moves()
+        # 1.Generate all possible moves
+        moves = self.get_all_possible_moves()
+        # 2.For each move, make the move
+        for i in range(len(moves) - 1, -1, -1):  # when removing from a list , go backwards
+            self.make_move(moves[i])
+            # 3.Generate all moves for the opponent
+            # 4.Check if any of the opponent moves attack the king
+            self.whiteToMove = not self.whiteToMove  # we switch player because make_move() switches the player
+            if self.in_check():
+                moves.remove(moves[i])
+            self.whiteToMove = not self.whiteToMove  # Switch the player back
+            # 5.If they do not, then the move is valid
+            self.undo_move()
+        if len(moves) == 0:
+            # Checkmate and stalemate
+            if self.in_check():
+                self.checkmate = True
+                print("Checkmate !")
+
+            else:
+                self.stalemate = True
+                print("Stalemate !")
+        else:
+            # To remove checkmate while we undo
+            self.checkmate=False
+            self.stalemate=False
+
+        return moves
+
+    def in_check(self):
+        """Helps to find if the player is in check"""
+        if self.whiteToMove:
+            return self.sq_under_attack(*self.white_king_pos)
+        else:
+            return self.sq_under_attack(*self.black_king_pos)
+
+    def sq_under_attack(self, r, c):
+        """Determines if the given square is under attack"""
+        self.whiteToMove = not self.whiteToMove  # switch to opponent 's move
+        opp_moves = self.get_all_possible_moves()
+        self.whiteToMove = not self.whiteToMove  # switch back to current player
+        for move in opp_moves:
+            if move.end_col == c and move.end_row == r:
+                return True
+        return False
 
     def get_all_possible_moves(self):
         """Get all Moves without considering checks"""
@@ -182,7 +241,6 @@ class Gamestate():
                         moves.append(Move((r, c), (new_row, new_col), self.board))
 
 
-
 class Move():
     rank_to_rows = {"1": 7, "2": 6, "3": 5, "4": 4, "5": 3, "6": 2, "7": 1, "8": 0}  # ranks mapped to the rows
     rows_to_ranks = {v: k for k, v in rank_to_rows.items()}  # rows mapped to the ranks
@@ -223,6 +281,3 @@ class Move():
             return True
         else:
             return False
-
-
-
