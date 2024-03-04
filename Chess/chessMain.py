@@ -5,6 +5,7 @@ Main file for the ChessBot game
 import pygame as p
 import chessEngine
 import os
+
 WIDTH = HEIGHT = 512
 DIMENSION = 8  # Dimension of chess board
 SQ_SIZE = HEIGHT // DIMENSION
@@ -15,6 +16,10 @@ IMAGES = {}
 '''
 Initialise a global dictionary of all Images
 '''
+"""Import the audio files for the game"""
+p.mixer.init()
+move_self = p.mixer.Sound(os.path.join('audio', 'move-self.mp3'))
+capture = p.mixer.Sound(os.path.join('audio', 'capture.mp3'))
 
 
 def load_images():
@@ -22,8 +27,6 @@ def load_images():
     for piece in pieces:
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
     # now we can access the images with IMAGES['wp']
-
-
 
 
 def main():
@@ -34,10 +37,7 @@ def main():
     p.display.set_caption("Chess")
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
-    """Import the audio files for the game"""
-    p.mixer.init()
-    move_self = p.mixer.Sound(os.path.join('audio', 'move-self.mp3'))
-    capture = p.mixer.Sound(os.path.join('audio', 'capture.mp3'))
+
     """Initialise the game state"""
     gs = chessEngine.Gamestate()  # calls the GameState of the Engine
     print(gs.board)
@@ -67,13 +67,19 @@ def main():
                 if len(player_clicks) == 2:
                     move = chessEngine.Move(player_clicks[0], player_clicks[1], gs.board)
                     print(move.get_notation())
-                    if move in valid_moves:  # Checks if the user's move is in the list of valid moves
+                    if gs.whiteToMove and move.piece_moved[
+                        0] == 'w' and move in valid_moves:  # check piece color and valid move
                         gs.make_move(move)
-                        if move.move_type() == 'move':
-                            p.mixer.Sound.play(move_self)
-                        elif move.move_type() == 'capture':
-                            p.mixer.Sound.play(capture)
                         move_made = True
+                        make_sound(move)
+                    elif not gs.whiteToMove and move.piece_moved[0] == 'b' and move in valid_moves:
+                        gs.make_move(move)
+                        move_made = True
+                        make_sound(move)
+                    else:
+                        # handle invalid move
+                        print("Invalid move!")
+
                     # reset the move to let them do next move
                     sq_selected = ()
                     player_clicks = []
@@ -119,6 +125,15 @@ def draw_pieces(screen, board):
             piece = board[row][col]
             if piece != '--':  # if not an empty square , draw the piece
                 screen.blit(IMAGES[piece], p.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
+
+def make_sound(move):
+    """This method classifies the moves as captures , moves, check , checkmate and promotion"""
+
+    if move.piece_captured != '--':
+        p.mixer.Sound.play(capture)
+    elif move.piece_captured == '--':
+        p.mixer.Sound.play(move_self)
 
 
 if __name__ == "__main__":

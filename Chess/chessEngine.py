@@ -224,11 +224,5 @@ class Move():
         else:
             return False
 
-    def move_type(self):
-        """This method classifies the moves as captures , moves, check , checkmate and promotion"""
 
-        if self.piece_captured != '--':
-            return "capture"
-        elif self.piece_captured == '--':
-            return "move"
 
