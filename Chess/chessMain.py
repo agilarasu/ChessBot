@@ -67,22 +67,16 @@ def main():
                 if len(player_clicks) == 2:
                     move = chessEngine.Move(player_clicks[0], player_clicks[1], gs.board)
                     print(move.get_notation())
-                    if gs.whiteToMove and move.piece_moved[
-                        0] == 'w' and move in valid_moves:  # check piece color and valid move
+                    if move in valid_moves:
                         gs.make_move(move)
                         move_made = True
                         make_sound(move)
-                    elif not gs.whiteToMove and move.piece_moved[0] == 'b' and move in valid_moves:
-                        gs.make_move(move)
-                        move_made = True
-                        make_sound(move)
+                        sq_selected= ()  # reset the user clicks
+                        player_clicks = []
                     else:
-                        # handle invalid move
-                        print("Invalid move!")
+                        player_clicks = [sq_selected]
 
-                    # reset the move to let them do next move
-                    sq_selected = ()
-                    player_clicks = []
+
             # Key handler
             elif event.type == p.KEYDOWN:
                 if event.key == p.K_LEFT:
